@@ -1,0 +1,6 @@
+{
+  "name": "SmartAgri Control Center",
+  "description": "Smart Agriculture Control Center with real-time Arduino sensor monitoring, analytics, and cloud storage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

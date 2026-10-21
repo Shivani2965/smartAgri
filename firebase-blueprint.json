@@ -1,0 +1,159 @@
+{
+  "entities": {
+    "TelemetryReading": {
+      "title": "TelemetryReading",
+      "description": "A single sensor reading event from the Arduino smart agriculture system",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User ID of the farm owner who recorded the reading",
+          "maxLength": 128
+        },
+        "distanceCm": {
+          "type": "number",
+          "description": "Ultrasonic distance in cm from sensor to waste/object"
+        },
+        "soilMoistureRaw": {
+          "type": "number",
+          "description": "Raw analog soil moisture reading from 0 to 1023"
+        },
+        "soilMoisturePct": {
+          "type": "number",
+          "description": "Calculated percentage soil moisture from 0 to 100"
+        },
+        "pump": {
+          "type": "string",
+          "description": "Water pump status (ON, OFF, or Unknown)",
+          "maxLength": 32
+        },
+        "ldrRaw": {
+          "type": "number",
+          "description": "LDR light sensor raw analog reading"
+        },
+        "streetlight": {
+          "type": "string",
+          "description": "Streetlight state (ON, OFF, or Unknown)",
+          "maxLength": 32
+        },
+        "lid": {
+          "type": "string",
+          "description": "Dustbin lid state or object detection status",
+          "maxLength": 64
+        },
+        "rawLine": {
+          "type": "string",
+          "description": "Last raw serial string received from Arduino",
+          "maxLength": 512
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "ISO timestamp of the reading",
+          "maxLength": 64
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Server creation timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["userId", "timestamp"]
+    },
+    "AlertEvent": {
+      "title": "AlertEvent",
+      "description": "Logged alert or system event triggered by sensor thresholds",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User ID of the farm owner",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "description": "Brief headline for the alert or event",
+          "maxLength": 128
+        },
+        "detail": {
+          "type": "string",
+          "description": "Detailed explanation of the event",
+          "maxLength": 256
+        },
+        "module": {
+          "type": "string",
+          "description": "Module name: irrigation, streetlight, dustbin, or system",
+          "maxLength": 32
+        },
+        "type": {
+          "type": "string",
+          "description": "Event classification: System, Warning, Alert, or Info",
+          "maxLength": 32
+        },
+        "color": {
+          "type": "string",
+          "description": "Badge color: blue, green, orange, or amber",
+          "maxLength": 16
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "ISO timestamp of the event",
+          "maxLength": 64
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Server creation timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["userId", "title", "timestamp"]
+    },
+    "SystemSetting": {
+      "title": "SystemSetting",
+      "description": "Configurable thresholds and operational modes for the farm",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "User ID of the farm owner",
+          "maxLength": 128
+        },
+        "moistureThreshold": {
+          "type": "number",
+          "description": "Percentage below which automatic irrigation activates"
+        },
+        "autoIrrigation": {
+          "type": "boolean",
+          "description": "Whether automated irrigation logic is enabled"
+        },
+        "autoLighting": {
+          "type": "boolean",
+          "description": "Whether automated streetlight control is enabled"
+        },
+        "binAlertThreshold": {
+          "type": "number",
+          "description": "Fill percentage threshold to trigger dustbin collection alert"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last updated timestamp",
+          "maxLength": 64
+        }
+      },
+      "required": ["userId", "moistureThreshold", "autoIrrigation", "autoLighting"]
+    }
+  },
+  "firestore": {
+    "/telemetry_readings/{readingId}": {
+      "schema": "TelemetryReading",
+      "description": "Collection of timestamped Arduino telemetry readings"
+    },
+    "/alerts_and_events/{eventId}": {
+      "schema": "AlertEvent",
+      "description": "Historical log of automated notifications and system state changes"
+    },
+    "/system_settings/{userId}": {
+      "schema": "SystemSetting",
+      "description": "User-specific configuration thresholds and operational modes"
+    }
+  }
+}

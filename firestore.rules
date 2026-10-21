@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidTelemetryReading(data) {
+      return data.userId == request.auth.uid &&
+             data.timestamp is string && data.timestamp.size() <= 64 &&
+             (!('distanceCm' in data) || data.distanceCm == null || data.distanceCm is number) &&
+             (!('soilMoistureRaw' in data) || data.soilMoistureRaw == null || data.soilMoistureRaw is number) &&
+             (!('soilMoisturePct' in data) || data.soilMoisturePct == null || data.soilMoisturePct is number) &&
+             (!('pump' in data) || data.pump == null || (data.pump is string && data.pump.size() <= 32)) &&
+             (!('ldrRaw' in data) || data.ldrRaw == null || data.ldrRaw is number) &&
+             (!('streetlight' in data) || data.streetlight == null || (data.streetlight is string && data.streetlight.size() <= 32)) &&
+             (!('lid' in data) || data.lid == null || (data.lid is string && data.lid.size() <= 64)) &&
+             (!('rawLine' in data) || data.rawLine == null || (data.rawLine is string && data.rawLine.size() <= 512)) &&
+             (!('createdAt' in data) || data.createdAt == null || (data.createdAt is string && data.createdAt.size() <= 64));
+    }
+
+    function isValidAlertEvent(data) {
+      return data.userId == request.auth.uid &&
+             data.title is string && data.title.size() <= 128 &&
+             data.timestamp is string && data.timestamp.size() <= 64 &&
+             (!('detail' in data) || data.detail == null || (data.detail is string && data.detail.size() <= 256)) &&
+             (!('module' in data) || data.module == null || (data.module is string && data.module.size() <= 32)) &&
+             (!('type' in data) || data.type == null || (data.type is string && data.type.size() <= 32)) &&
+             (!('color' in data) || data.color == null || (data.color is string && data.color.size() <= 16)) &&
+             (!('createdAt' in data) || data.createdAt == null || (data.createdAt is string && data.createdAt.size() <= 64));
+    }
+
+    function isValidSystemSetting(data) {
+      return data.userId == request.auth.uid &&
+             data.moistureThreshold is number &&
+             data.autoIrrigation is bool &&
+             data.autoLighting is bool &&
+             (!('binAlertThreshold' in data) || data.binAlertThreshold == null || data.binAlertThreshold is number) &&
+             (!('updatedAt' in data) || data.updatedAt == null || (data.updatedAt is string && data.updatedAt.size() <= 64));
+    }
+
+    // Telemetry readings collection: immutable real-time sensor log
+    match /telemetry_readings/{readingId} {
+      allow create: if isSignedIn() && isValidId(readingId) && isValidTelemetryReading(incoming());
+      allow list, get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // Alerts & events log
+    match /alerts_and_events/{eventId} {
+      allow create: if isSignedIn() && isValidId(eventId) && isValidAlertEvent(incoming());
+      allow list, get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+      allow update: if false;
+    }
+
+    // System settings per user
+    match /system_settings/{userId} {
+      allow get: if isSignedIn() && userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+      allow create, update: if isSignedIn() && userId == request.auth.uid && isValidSystemSetting(incoming());
+      allow delete: if isSignedIn() && userId == request.auth.uid;
+    }
+  }
+}
