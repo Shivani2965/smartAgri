@@ -1,0 +1,17 @@
+{
+  "name": "smartagri-serial-bridge",
+  "version": "1.0.0",
+  "description": "Node.js serial bridge connecting Arduino UART (COM port) to SmartAgri web dashboard via Socket.io",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@serialport/parser-readline": "^12.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "serialport": "^12.0.0",
+    "socket.io": "^4.8.1"
+  }
+}
